@@ -1,41 +1,13 @@
-# play with PacBio sequencing data
+# Look at position of phage SNPs and indels from phage 1 and phage 2 #
 
-# load in packages
+# load in packages ####
 library(tidyverse)
-library(Biostrings)
-library(rBLAST)
-library(ShortRead)
 library(vcfR)
 library(flextable)
 
-d4 <- readFastq('genome_seq/cleaned_sequences/file4_corrected_reads.fastq.gz') %>%
-  sread(.)
-length(d4)
-
-# load reference in - rBlast only works on reference files that do not have spaces in the file name
-# move the folder if this is the case (as it is for me on Google Drive)
-
-# now to try blast ####
-makeblastdb('~/Desktop/reference/GCA_000886135.1_ViralProj42717_genomic.fna', dbtype = 'nucl')
-db <- blast('~/Desktop/reference/GCA_000886135.1_ViralProj42717_genomic.fna')
-
-d4_prediction <- predict(db, d4)
-unique(d4_prediction$QueryID) %>% length()
-
-#---------------------------------------#
-# read in gff file and look for SNPs ####
-#---------------------------------------#
-
-tidy_freebayes <- function(freebayes_vcf){
-  temp <- vcfR::read.vcfR(freebayes_vcf, verbose = FALSE)
-  temp <- vcfR::vcfR2tidy(temp, single_frame = TRUE) %>%
-    .$dat %>%
-    janitor::clean_names() %>%
-    dplyr::filter(dp > mean(dp) - 2*sd(dp) & dp < mean(dp) + 2*sd(dp)) %>%
-    dplyr::select(., -c(id, filter, ns))
-  temp$file <- tools::file_path_sans_ext(basename(freebayes_vcf))
-  return(temp)
-}
+#---------------------#
+# custom functions ####
+#---------------------#
 
 # function to assign a SNP pos to its position in the genome
 # returns the downstream, current, and upstream gene, and the distance to those
@@ -91,7 +63,19 @@ get_gene_info <- function(SNP_pos, d_genes, types_to_keep = c('gene'), pos_to_ke
   
 }
 
-# function to clean string up
+# function to tidy a freebayes vcf file
+tidy_freebayes <- function(freebayes_vcf){
+  temp <- vcfR::read.vcfR(freebayes_vcf, verbose = FALSE)
+  temp <- vcfR::vcfR2tidy(temp, single_frame = TRUE) %>%
+    .$dat %>%
+    janitor::clean_names() %>%
+    dplyr::filter(dp > mean(dp) - 2*sd(dp) & dp < mean(dp) + 2*sd(dp)) %>%
+    dplyr::select(., -c(id, filter, ns))
+  temp$file <- tools::file_path_sans_ext(basename(freebayes_vcf))
+  return(temp)
+}
+
+# function to clean vcf note column string up
 clean_gff_note <- function(note){
   # lowercase
   temp <- tolower(note)
@@ -103,8 +87,12 @@ clean_gff_note <- function(note){
   return(temp)
 }
 
-# read in gff file ####
-gff <- readr::read_tsv('genome_seq/reference/GCA_000886135.1_ViralProj42717_genomic.gff',
+#--------------------------------------------------#
+# read in gff file and annotate SNPs and indels ####
+#--------------------------------------------------#
+
+# read in reference gff file
+gff <- readr::read_tsv('data/GCA_000886135.1_ViralProj42717_genomic.gff',
                 col_names = c(
                   "seqid",
                   "source",
@@ -121,7 +109,7 @@ gff <- readr::read_tsv('genome_seq/reference/GCA_000886135.1_ViralProj42717_geno
                 col_types = "ccciidcic"
 )
 
-# clean up gff file ####
+# clean up reference gff file
 
 # keep protein coding
 gff1 <- # remove first line (type == region) as it described the whole genome
@@ -162,11 +150,11 @@ gff <- merge(gff1, select(gff2, start, note2), by = 'start', all.x = TRUE) %>%
 # add a column to easily identify tail fiber gene
 gff <- mutate(gff, tail_gene = ifelse(grepl('tail', note), 'yes', 'no'))
 
-# read in SNP/indel file
-d_snp <- tidy_freebayes('genome_seq/vcf/file4_filter.vcf') %>%
-  select(., chrom:pao)
+# read in SNP/indel files and process
 
-d_snp <- d_snp %>%
+# phage 1
+d_phage1 <- tidy_freebayes('data/phage_1.vcf') %>%
+  select(., chrom:pao) %>%
   mutate(., n = 1:n()) %>%
   nest(-n) %>%
   mutate(gene_info = purrr::map(data, ~get_gene_info(.x$pos, d_genes = gff))) %>%
@@ -175,14 +163,9 @@ d_snp <- d_snp %>%
   filter(., gene_type == 'current_pos') %>%
   left_join(., select(gff, gene_name = name, tail_gene))
 
-d_snp
-
-# read in ancestral 
-# read in SNP/indel file
-d_snp2 <- tidy_freebayes('genome_seq/vcf/110-Pf_Phi2_ancestral_171011_L008_minimap2_sorted_freebayes_filter.vcf') %>%
-  select(., chrom:pao)
-
-d_snp2 <- d_snp2 %>%
+# phage 2
+d_phage2 <- tidy_freebayes('data/phage_2.vcf') %>%
+  select(., chrom:pao) %>%
   mutate(., n = 1:n()) %>%
   nest(-n) %>%
   mutate(gene_info = purrr::map(data, ~get_gene_info(.x$pos, d_genes = gff))) %>%
@@ -191,10 +174,11 @@ d_snp2 <- d_snp2 %>%
   filter(., gene_type == 'current_pos') %>%
   left_join(., select(gff, gene_name = name, tail_gene))
 
-# lets make a table
-table_info_phage1 <- select(d_snp2, pos, ref, alt, tail_gene) %>%
+# lets make a table ####
+
+table_info_phage1 <- select(d_phage1, pos, ref, alt, tail_gene) %>%
   mutate(phage = 'Phage 1')
-table_info_phage2 <- select(d_snp, pos, ref, alt, tail_gene) %>%
+table_info_phage2 <- select(d_phage2, pos, ref, alt, tail_gene) %>%
   mutate(phage = 'Phage 2') 
 
 d_table <- bind_rows(table_info_phage1, table_info_phage2) %>%
@@ -216,6 +200,7 @@ table <- flextable(d_table) %>%
   hline(i = c(3), border = fp_border_default()) %>%
   fix_border_issues() %>%
   bold(~pos == 37265, j = c(2:6))
-table
 
-save_as_image(table, 'plots/phi2_differences.png', webshot = 'webshot2')
+save_as_image(table, 'tables/phi2_differences.png', webshot = 'webshot2')
+
+table

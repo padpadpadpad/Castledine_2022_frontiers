@@ -182,6 +182,8 @@ ggsave('plots/Figure_2.png', last_plot(), width = 10, height = 6)
 # Make Tables ####
 #----------------#
 
+# turn off exponential notation
+
 # Table S1
 
 # grab contrasts
@@ -209,8 +211,7 @@ contrast_table <- flextable(contrast_contemporary) %>%
   align(j = 1, align = 'center', part = 'header')  %>%
   bold(i = c(1, 7:9))
 
-contrast_table
-
+#contrast_table
 # save
 save_as_image(contrast_table, 'tables/Table_S1.png', webshot = 'webshot2')
 
@@ -241,10 +242,10 @@ means_table <- flextable(d_averages_table) %>%
   align(j = c(1:6), align = 'center', part = 'all') %>%
   align(j = 1, align = 'center', part = 'header')
 
-means_table
+#means_table
 
 # save
-save_as_image(contrast_table, 'tables/Table_S2.png', webshot = 'webshot2')
+save_as_image(means_table, 'tables/Table_S2.png', webshot = 'webshot2')
 
 # Table S3 - bacterial susceptibility over time across all phage time points
 resist_tab <- emmeans::emmeans(mod4_glm, pairwise ~ bacteria_tp_cat|treatment, type = "response")$contrasts %>%
@@ -271,7 +272,7 @@ resist_flex <- flextable(resist_tab) %>%
   align(j = 1, align = 'center', part = 'header') %>%
   bold(i = c(1, 2, 5))
 
-resist_flex
+#resist_flex
 
 # save
-save_as_image(contrast_table, 'tables/Table_S3.png', webshot = 'webshot2')
+save_as_image(resist_flex, 'tables/Table_S3.png', webshot = 'webshot2')
