@@ -4,13 +4,15 @@ _Castledine et al. (2022) Greater phage genotypic diversity constrains arms-race
 
 DOI of paper: 
 
+ENA Accession number for sequencing: [PRJEB50009](https://www.ebi.ac.uk/ena/browser/view/PRJEB50009)
+
 ### Outline
 
 This repository contains the final datasets, analyses and figures of the above-mentioned paper. It can recreate all of the analyses and figures in the main text (Figure 1 and 2) and all the tables in the Supplementary Information
 
 ### Feedback
 
-- Please report any problems or bugs in the code in the [Issues](https://github.com/padpadpadpad/Castledine_2022_frontiers tab of the GitHub repository. Alternatively, please email _d.padfield@exeter.ac.uk_.
+- Please report any problems or bugs in the code in the [Issues](https://github.com/padpadpadpad/Castledine_2022_frontiers) tab of the GitHub repository. Alternatively, please email _d.padfield@exeter.ac.uk_.
 
 ### Licensing
 
