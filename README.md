@@ -1,6 +1,6 @@
 # Analyses and data of:
 
-_Castledine et al. (2022) Greater phage genotypic diversity constrains arms-race coevolution. Frontiers in Cellular and Infection Microbiology_ 
+_Castledine et al. (2022) Greater phage genotypic diversity constrains arms-race coevolution. Frontiers in Cellular and Infection Microbiology_. 
 
 DOI of paper: 
 
