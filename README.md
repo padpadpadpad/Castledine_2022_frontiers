@@ -2,7 +2,7 @@
 
 _Castledine et al. (2022) Greater phage genotypic diversity constrains arms-race coevolution. Frontiers in Cellular and Infection Microbiology. 12: 834406_. 
 
-DOI of paper: [https://doi.org/10.3389%2Ffcimb.2022.834406](https://doi.org/10.3389%2Ffcimb.2022.834406)
+DOI of paper: [doi: 10.3389/fcimb.2022.834406](https://doi.org/10.3389%2Ffcimb.2022.834406)
 
 ENA Accession number for sequencing: [PRJEB50009](https://www.ebi.ac.uk/ena/browser/view/PRJEB50009)
 
