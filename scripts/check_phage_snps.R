@@ -77,13 +77,18 @@ tidy_freebayes <- function(freebayes_vcf){
 
 # function to clean vcf note column string up
 clean_gff_note <- function(note){
-  # lowercase
-  temp <- tolower(note)
-  # remove things that arent a letter or number
-  temp <- stringr::str_replace_all(temp,"[^[:alnum:]]", " ")
-  # change white space to '_'
-  temp <- stringr::str_replace_all(temp,"[\\s]+", "_")
-  temp <- if(str_split(temp, pattern = '')[[1]][nchar(temp)] == '_'){temp <- substr(temp, 1, nchar(temp) - 1)}
+  if(!is.na(note)){
+    # lowercase
+    temp <- tolower(note)
+    # remove things that arent a letter or number
+    temp <- stringr::str_replace_all(temp,"[^[:alnum:]]", " ")
+    # change white space to '_'
+    temp <- stringr::str_replace_all(temp,"[\\s]+", "_")
+    if(str_split(temp, pattern = '')[[1]][nchar(temp)] == '_'){temp <- substr(temp, 1, nchar(temp) - 1)}
+  }
+  
+  if(is.na(note)){temp = NA}
+  
   return(temp)
 }
 
@@ -124,7 +129,7 @@ gff1 <- # remove first line (type == region) as it described the whole genome
          name = ifelse(grepl('=', name), paste(attr_id, type, sep = '_'), name),
          gene_biotype = ifelse(grepl('=', gene_biotype), NA, gene_biotype),
          note = ifelse(grepl('=', note), NA, note),
-         note = clean_gff_note(note)) %>%
+         note = map_chr(note, clean_gff_note)) %>%
   select(., seqid, type, start, stop, strand, attr_id, name, gene_biotype, note)
 
 gff2 <- # remove first line (type == region) as it described the whole genome
@@ -139,7 +144,7 @@ gff2 <- # remove first line (type == region) as it described the whole genome
          name = ifelse(grepl('=', name), paste(attr_id, type, sep = '_'), name),
          gene_biotype = ifelse(grepl('=', gene_biotype), NA, gene_biotype),
          note2 = ifelse(grepl('=', note2), NA, note2),
-         note2 = clean_gff_note(note2)) %>%
+         note2 = map_chr(note2, clean_gff_note)) %>%
   select(., seqid, type, start, stop, strand, attr_id, name, gene_biotype, note2)
 
 # bind both gff outputs
